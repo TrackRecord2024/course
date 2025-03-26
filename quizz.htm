@@ -1,0 +1,129 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Macroeconomics Quiz Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      color: #ffffff;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      margin-top: 0;
+    }
+    .question-box {
+      background-color: #ffffff10;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px auto;
+      max-width: 600px;
+    }
+    button {
+      background-color: #2575fc;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #1a61c4;
+    }
+    #scoreboard {
+      margin-top: 30px;
+      background-color: #ffffff10;
+      padding: 15px;
+      border-radius: 10px;
+      display: inline-block;
+    }
+    .team-score {
+      margin: 5px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Macroeconomics Quiz Game</h1>
+  <div id="quiz-section" class="question-box">
+    <p id="question-text"></p>
+    <div id="answers"></div>
+  </div>
+  <div id="scoreboard">
+    <p class="team-score">Team A: <span id="team-a-score">0</span> points</p>
+    <p class="team-score">Team B: <span id="team-b-score">0</span> points</p>
+  </div>
+  <button id="next-question" onclick="nextQuestion()" style="display: none;">Next Question</button>
+
+  <script>
+    const questions = [
+      { question: "What is the primary goal of monetary policy?", answers: ["Control inflation", "Increase population", "Promote exports", "Decrease savings"], correct: 0 },
+      { question: "Which is NOT a macroeconomic objective?", answers: ["Full employment", "Stable prices", "Efficient resource allocation", "Control of crime"], correct: 3 },
+      { question: "What is GDP?", answers: ["Gross Domestic Product", "Global Development Plan", "Government Departmental Policy", "General Domestic Policy"], correct: 0 },
+      { question: "What does fiscal policy involve?", answers: ["Taxation and spending", "Interest rates", "Currency exchange", "Export regulations"], correct: 0 },
+      { question: "Which organization monitors global trade?", answers: ["WTO", "UN", "IMF", "NATO"], correct: 0 },
+      { question: "What does CPI stand for?", answers: ["Consumer Price Index", "Currency Price Index", "Capital Productivity Index", "Centralized Price Index"], correct: 0 },
+      { question: "What is an example of economic growth?", answers: ["Higher GDP", "More pollution", "Fewer exports", "Lower prices"], correct: 0 },
+      { question: "What does a negative balance of trade mean?", answers: ["Imports exceed exports", "Inflation is negative", "Exports exceed imports", "No international trade"], correct: 0 },
+      { question: "What does 'full employment' mean?", answers: ["All available workers employed", "No unemployment", "Balanced trade", "Stable inflation"], correct: 0 },
+      { question: "What does central bank independence refer to?", answers: ["Operating without government interference", "Printing unlimited currency", "Being self-funded", "Deciding national budgets"], correct: 0 },
+    ];
+
+    let currentQuestion = 0;
+    let teamAScore = 0;
+    let teamBScore = 0;
+    let currentTeam = "A";
+
+    function showQuestion() {
+      const questionElement = document.getElementById("question-text");
+      const answersElement = document.getElementById("answers");
+
+      questionElement.textContent = questions[currentQuestion].question;
+      answersElement.innerHTML = "";
+
+      questions[currentQuestion].answers.forEach((answer, index) => {
+        const button = document.createElement("button");
+        button.textContent = answer;
+        button.onclick = () => checkAnswer(index);
+        answersElement.appendChild(button);
+      });
+    }
+
+    function checkAnswer(selected) {
+      const correctAnswer = questions[currentQuestion].correct;
+      if (selected === correctAnswer) {
+        if (currentTeam === "A") {
+          teamAScore++;
+          document.getElementById("team-a-score").textContent = teamAScore;
+        } else {
+          teamBScore++;
+          document.getElementById("team-b-score").textContent = teamBScore;
+        }
+      }
+
+      currentTeam = currentTeam === "A" ? "B" : "A";
+
+      if (currentQuestion < questions.length - 1) {
+        document.getElementById("next-question").style.display = "inline";
+      } else {
+        document.getElementById("quiz-section").innerHTML = "<p>Quiz Over! Thanks for playing!</p>";
+        document.getElementById("next-question").style.display = "none";
+      }
+    }
+
+    function nextQuestion() {
+      currentQuestion++;
+      document.getElementById("next-question").style.display = "none";
+      showQuestion();
+    }
+
+    // Initialize quiz
+    showQuestion();
+  </script>
+</body>
+</html>
