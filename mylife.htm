@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Decisiones Financieras de Vida</title>
+    
+    <!-- Librería para el gráfico -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Importar fuente moderna de Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- ESTILOS CSS --- */
+        
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --primary-color-hex: #0d6efd; /* Guardamos el HEX para JS */
+            --primary-color: var(--primary-color-hex); /* Lo usamos en CSS */
+            --primary-hover-color: #0b5ed7;
+            --text-color: #e0e0e0;
+            --text-muted-color: #a0a0a0;
+            --border-color: #333;
+            --success-color: #198754;
+            --danger-color: #dc3545;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 600px;
+            background-color: var(--surface-color);
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.6s ease-in-out;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1, h2 {
+            text-align: center;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            color: var(--primary-color);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            line-height: 1.4;
+        }
+
+        p {
+            text-align: center;
+            color: var(--text-muted-color);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 400;
+            color: var(--text-muted-color);
+        }
+
+        input[type="number"], input[type="email"] {
+            width: 100%;
+            padding: 1rem;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-color);
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="number"]:focus, input[type="email"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            margin-top: 1rem;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover-color);
+            transform: translateY(-2px);
+        }
+        
+        .btn.btn-success {
+            background-color: var(--success-color);
+        }
+        
+        .btn.btn-success:hover {
+             background-color: #156c42;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .option-btn {
+            text-align: left;
+            padding: 1rem;
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: background-color 0.3s, border-color 0.3s;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            width: 100%;
+        }
+
+        .option-btn:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-color: var(--primary-color);
+        }
+        
+        .progress-bar-container {
+            width: 100%;
+            background-color: var(--bg-color);
+            border-radius: 20px;
+            margin: 2rem 0;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        
+        .progress-bar {
+            width: 0%;
+            height: 10px;
+            background-color: var(--primary-color);
+            border-radius: 20px;
+            transition: width 0.5s ease-in-out;
+        }
+        
+        #results-summary {
+            text-align: center;
+        }
+        
+        #final-net-worth {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--success-color);
+            margin: 1rem 0;
+        }
+        
+        .cta-box {
+            background-color: var(--bg-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 2rem;
+            border: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+<body>
+
+    <main class="app-container">
+        <!-- Pantalla 1: Bienvenida -->
+        <div id="start-screen" class="screen active">
+            <h1>🔮</h1>
+            <h1>Simulador Financiero</h1>
+            <p>Descubre cómo las decisiones de hoy moldean tu futuro. Responde unas preguntas y visualiza tu posible camino financiero a 30 años.</p>
+            <button id="start-btn" class="btn">Empezar Simulación</button>
+        </div>
+
+        <!-- Pantalla 2: Inputs Iniciales -->
+        <div id="input-screen" class="screen">
+            <h2>Punto de Partida</h2>
+            <form id="initial-form">
+                <div class="form-group">
+                    <label for="age">Tu edad actual</label>
+                    <input type="number" id="age" required min="18" max="60" value="28">
+                </div>
+                <div class="form-group">
+                    <label for="income">Ingresos mensuales (€)</label>
+                    <input type="number" id="income" required min="500" value="2000">
+                </div>
+                <div class="form-group">
+                    <label for="savings">Ahorros actuales (€)</label>
+                    <input type="number" id="savings" required min="0" value="5000">
+                </div>
+                <button type="submit" class="btn">Calcular mi Futuro</button>
+            </form>
+        </div>
+
+        <!-- Pantalla 3: Decisiones -->
+        <div id="decision-screen" class="screen">
+            <div class="progress-bar-container">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
+            <h2 id="decision-question"></h2>
+            <p id="decision-context"></p>
+            <div id="options-container" class="options-container"></div>
+        </div>
+
+        <!-- Pantalla 4: Resultados -->
+        <div id="results-screen" class="screen">
+            <h2>Tu Proyección Financiera</h2>
+            <p>Basado en tus decisiones, este es un posible futuro. ¡El conocimiento es poder para cambiarlo!</p>
+            <div id="results-summary">
+                <p style="margin-bottom:0;">Patrimonio Neto a los 65 años:</p>
+                <div id="final-net-worth"></div>
+            </div>
+            <canvas id="results-chart"></canvas>
+            
+            <div class="cta-box">
+                <h3>¿Quieres tomar el control real?</h3>
+                <p>Este es solo un futuro posible. En nuestro curso, te damos las herramientas para construir el futuro que TÚ quieres. Déjanos tu email y te avisaremos.</p>
+                <form id="lead-form">
+                    <div class="form-group">
+                        <input type="email" id="email-lead" placeholder="tu.correo@ejemplo.com" required>
+                    </div>
+                    <button type="submit" class="btn btn-success">¡Quiero controlar mi futuro!</button>
+                </form>
+                <p id="thank-you-message" style="display:none; color: var(--success-color); margin-top:1rem;">¡Gracias! Estás en la lista.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- DATOS DE LAS DECISIONES EN FORMATO JSON -->
+    <script id="decisions-data" type="application/json">
+    [
+        {
+            "id": 1,
+            "ageTrigger": 30,
+            "question": "A tus 30, surge una oportunidad profesional. ¿Qué haces?",
+            "context": "Esta decisión puede cambiar tu trayectoria de ingresos para siempre.",
+            "options": [
+                {
+                    "text": "📚 Hacer un máster caro para un puesto mejor.",
+                    "effects": { "cost": 15000, "incomeBoostYears": 2, "incomeBoostPercent": 25, "risk": 0.1 }
+                },
+                {
+                    "text": "💼 Seguir en mi trabajo estable y seguro.",
+                    "effects": { "cost": 0, "incomeBoostYears": 0, "incomeBoostPercent": 0, "risk": 0 }
+                },
+                {
+                    "text": "🚀 Emprender un pequeño negocio online.",
+                    "effects": { "cost": 10000, "incomeBoostYears": 3, "incomeBoostPercent": 100, "risk": 0.5 }
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "ageTrigger": 35,
+            "question": "Con 35 años, piensas en tu vivienda. ¿Comprar o alquilar?",
+            "context": "Una de las decisiones financieras más grandes de tu vida.",
+            "options": [
+                {
+                    "text": "🔑 Comprar un piso con una hipoteca a 30 años.",
+                    "effects": { "monthlyExpenseChange": 400, "assetGain": 150000 }
+                },
+                {
+                    "text": "🛋️ Seguir de alquiler y tener más flexibilidad.",
+                    "effects": { "monthlyExpenseChange": 0, "assetGain": 0 }
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "ageTrigger": 40,
+            "question": "A los 40, te sobra algo de dinero al mes. ¿Qué haces con él?",
+            "context": "Aquí es donde el interés compuesto empieza a hacer magia (o a no hacerla).",
+            "options": [
+                {
+                    "text": "📈 Invertir 300€/mes en un fondo indexado (S&P 500).",
+                    "effects": { "investmentReturn": 0.08, "monthlyInvestment": 300 }
+                },
+                {
+                    "text": "💰 Dejarlo en la cuenta corriente 'por si acaso'.",
+                    "effects": { "investmentReturn": 0.005, "monthlyInvestment": 300 }
+                },
+                {
+                    "text": "🎲 Invertir en activos de alto riesgo (Cripto/startups).",
+                    "effects": { "investmentReturn": 0.25, "monthlyInvestment": 300, "risk": 0.4 }
+                }
+            ]
+        },
+        {
+            "id": 4,
+            "ageTrigger": 50,
+            "question": "Llegas a los 50. ¿Haces un gran gasto o potencias tu jubilación?",
+            "context": "La recta final es clave para asegurar tu tranquilidad.",
+            "options": [
+                {
+                    "text": "🏎️ Comprar el coche de tus sueños.",
+                    "effects": { "cost": 40000 }
+                },
+                {
+                    "text": "✈️ Hacer un viaje alrededor del mundo.",
+                    "effects": { "cost": 25000 }
+                },
+                {
+                    "text": "🐷 Aportación extra de 20.000€ a tu plan de inversión.",
+                    "effects": { "oneTimeInvestment": 20000 }
+                }
+            ]
+        }
+    ]
+    </script>
+    
+
+    <script>
+    // --- LÓGICA JAVASCRIPT ---
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- VARIABLES GLOBALES ---
+        const decisions = JSON.parse(document.getElementById('decisions-data').textContent);
+        let currentState = {};
+        let currentDecisionIndex = 0;
+        let timelineData = [];
+        let myChart;
+        
+        // --- CONSTANTES DE SIMULACIÓN ---
+        const RETIREMENT_AGE = 65;
+        const BASE_INFLATION = 0.02; // Inflación anual de gastos
+        const BASE_SALARY_INCREASE = 0.025; // Aumento salarial anual base
+        const BASE_INVESTMENT_RETURN = 0.04; // Rentabilidad si no se elige otra cosa
+
+        // --- REFERENCIAS AL DOM ---
+        const screens = document.querySelectorAll('.screen');
+        const startBtn = document.getElementById('start-btn');
+        const initialForm = document.getElementById('initial-form');
+        const decisionQuestion = document.getElementById('decision-question');
+        const decisionContext = document.getElementById('decision-context');
+        const optionsContainer = document.getElementById('options-container');
+        const progressBar = document.getElementById('progress-bar');
+        const finalNetWorthEl = document.getElementById('final-net-worth');
+        const leadForm = document.getElementById('lead-form');
+        const thankYouMessage = document.getElementById('thank-you-message');
+
+        // --- FUNCIONES ---
+        
+        function showScreen(screenId) {
+            screens.forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function initializeState() {
+            const age = parseInt(document.getElementById('age').value);
+            const income = parseInt(document.getElementById('income').value);
+            const savings = parseInt(document.getElementById('savings').value);
+
+            currentState = {
+                age: age,
+                monthlyIncome: income,
+                monthlyExpenses: income * 0.7, // Asumimos un 70% de gastos iniciales
+                netWorth: savings,
+                annualInvestmentReturn: BASE_INVESTMENT_RETURN,
+                monthlyInvestment: 0,
+            };
+            
+            timelineData = [{ age: age, netWorth: savings }];
+            currentDecisionIndex = 0;
+            
+            // Encontrar la primera decisión relevante para la edad del usuario
+            while (currentDecisionIndex < decisions.length && decisions[currentDecisionIndex].ageTrigger < currentState.age) {
+                currentDecisionIndex++;
+            }
+            
+            simulateToNextDecision();
+        }
+
+        function simulateToNextDecision() {
+            const nextDecisionAge = decisions[currentDecisionIndex] ? decisions[currentDecisionIndex].ageTrigger : RETIREMENT_AGE;
+
+            for (let age = currentState.age + 1; age <= nextDecisionAge; age++) {
+                // 1. Ingresos y ahorros anuales
+                currentState.monthlyIncome *= (1 + BASE_SALARY_INCREASE);
+                currentState.monthlyExpenses *= (1 + BASE_INFLATION);
+                const annualSavings = (currentState.monthlyIncome - currentState.monthlyExpenses) * 12;
+
+                // 2. Crecimiento de la inversión
+                currentState.netWorth += annualSavings; // Añadir ahorros del año
+                currentState.netWorth += currentState.monthlyInvestment * 12; // Añadir nuevas inversiones
+                currentState.netWorth *= (1 + currentState.annualInvestmentReturn); // Aplicar rentabilidad
+
+                currentState.age = age;
+                timelineData.push({ age: age, netWorth: Math.round(currentState.netWorth) });
+            }
+
+            if (currentDecisionIndex < decisions.length) {
+                displayDecision();
+            } else {
+                showResults();
+            }
+        }
+
+        function displayDecision() {
+            const decision = decisions[currentDecisionIndex];
+            
+            updateProgressBar();
+            
+            decisionQuestion.textContent = `A los ${decision.ageTrigger} años...`;
+            decisionContext.textContent = decision.question;
+            optionsContainer.innerHTML = '';
+
+            decision.options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.innerHTML = option.text;
+                button.onclick = () => {
+                    applyDecision(option.effects);
+                    currentDecisionIndex++;
+                    simulateToNextDecision();
+                };
+                optionsContainer.appendChild(button);
+            });
+            showScreen('decision-screen');
+        }
+
+        function applyDecision(effects) {
+            // Aplicar efectos instantáneos
+            if (effects.cost) currentState.netWorth -= effects.cost;
+            if (effects.assetGain) currentState.netWorth += effects.assetGain;
+            if (effects.oneTimeInvestment) currentState.netWorth += effects.oneTimeInvestment;
+            
+            // Aplicar efectos recurrentes
+            if (effects.monthlyExpenseChange) currentState.monthlyExpenses += effects.monthlyExpenseChange;
+            if (effects.monthlyInvestment) currentState.monthlyInvestment += effects.monthlyInvestment;
+            if (effects.investmentReturn) currentState.annualInvestmentReturn = effects.investmentReturn;
+
+            // Efectos con riesgo
+            if (effects.risk && Math.random() < effects.risk) {
+                 // Fallo: El impulso no ocurre o se pierde parte de la inversión
+                 if(effects.incomeBoostPercent) effects.incomeBoostPercent = 0;
+                 if(effects.cost) currentState.netWorth -= effects.cost * 0.5; // Pierde la mitad de lo arriesgado
+            }
+            
+            // Efectos futuros
+            if (effects.incomeBoostYears) {
+                setTimeout(() => {
+                    currentState.monthlyIncome *= (1 + effects.incomeBoostPercent / 100);
+                }, (effects.incomeBoostYears * 1000)); // Simulación simplificada para el boost
+            }
+        }
+        
+        function updateProgressBar() {
+            const progress = ((currentDecisionIndex + 1) / decisions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        function showResults() {
+            const finalNetWorth = timelineData[timelineData.length - 1].netWorth;
+            finalNetWorthEl.textContent = `${finalNetWorth.toLocaleString('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0 })}`;
+            renderChart();
+            showScreen('results-screen');
+        }
+
+        function renderChart() {
+            const ctx = document.getElementById('results-chart').getContext('2d');
+            
+            // --- INICIO DE LA CORRECCIÓN ---
+            // Obtenemos los valores de las variables CSS para usarlos en JavaScript
+            const computedStyles = getComputedStyle(document.body);
+            const textColor = computedStyles.getPropertyValue('--text-muted-color').trim();
+            const primaryColorHex = computedStyles.getPropertyValue('--primary-color-hex').trim();
+            const gridColor = 'rgba(255, 255, 255, 0.1)';
+            
+            // Convertimos el color HEX a un formato RGBA para el fondo del gráfico
+            let r = 0, g = 0, b = 0;
+            if (primaryColorHex.length === 7) {
+                r = parseInt(primaryColorHex.substring(1, 3), 16);
+                g = parseInt(primaryColorHex.substring(3, 5), 16);
+                b = parseInt(primaryColorHex.substring(5, 7), 16);
+            }
+            const primaryColorWithOpacity = `rgba(${r}, ${g}, ${b}, 0.1)`;
+
+            if(myChart) {
+                myChart.destroy();
+            }
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timelineData.map(d => d.age),
+                    datasets: [{
+                        label: 'Patrimonio Neto (€)',
+                        data: timelineData.map(d => d.netWorth),
+                        borderColor: primaryColorHex,
+                        backgroundColor: primaryColorWithOpacity,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Edad', color: textColor },
+                            ticks: { color: textColor },
+                            grid: { color: gridColor }
+                        },
+                        y: {
+                            title: { display: true, text: 'Patrimonio (€)', color: textColor },
+                            ticks: { 
+                                color: textColor,
+                                callback: function(value, index, values) {
+                                    if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
+                                    if (value >= 1000) return (value / 1000) + 'k';
+                                    return value;
+                                }
+                            },
+                            grid: { color: gridColor }
+                        }
+                    }
+                }
+            });
+            // --- FIN DE LA CORRECCIÓN ---
+        }
+
+        // --- EVENT LISTENERS ---
+        startBtn.addEventListener('click', () => showScreen('input-screen'));
+
+        initialForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            initializeState();
+        });
+        
+        leadForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email-lead').value;
+            if(email) {
+                // Aquí iría la lógica para enviar el email a tu servicio (Mailchimp, etc.)
+                console.log('Lead capturado:', email);
+                leadForm.style.display = 'none';
+                thankYouMessage.style.display = 'block';
+            }
+        });
+    });
+    </script>
+</body>
+</html>
